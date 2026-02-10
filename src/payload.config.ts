@@ -29,4 +29,42 @@ export default buildConfig({
   }),
   sharp,
   plugins: [],
+  endpoints: [
+    {
+      handler: () => {
+        return Response.json({
+          message: 'Hello from the custom endpoint!',
+          time: new Date().toISOString(),
+        })
+      },
+      path: '/hello',
+      method: 'get',
+    },
+  ],
+  jobs: {
+    tasks: [{
+      slug: 'testjob',
+      schedule: [
+        {
+          cron: '*/10 * * * * *',
+          queue: 'second',
+        },
+      ],
+      retries: 0,
+      handler: async () => {
+        const url = 'http://127.0.0.1:3000/api/hello'
+        const response = await fetch(url, { cache: 'no-cache' })
+        const res = await response.json()
+        console.log(res)
+        return res
+      }
+    }],
+    autoRun: [
+      {
+        cron: '* * * * * *',
+        limit: 100,
+        queue: 'second',
+      },
+    ],
+  },
 })
